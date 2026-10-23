@@ -1,0 +1,21 @@
+events {
+    worker_connections 1024;
+}
+
+http {
+  upstream store_manager_nginx {
+    least_conn;  
+    # TODO: remplacez avec l'adresse IP de vos serveurs ou VMs
+    server 192.168.1.101:5000;
+    server 192.168.1.102:5000;
+  }
+  
+  server {
+    listen 80;
+    
+    location / {
+      proxy_pass http://store_manager_nginx;
+    }
+    
+  }
+}
