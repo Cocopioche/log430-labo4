@@ -156,8 +156,8 @@ def get_best_selling_products_redis(skip_cache=False):
 
 def get_highest_spending_users(skip_cache=False):
     """Get report of highest spending users"""
-    return get_highest_spending_users_redis(skip_cache)
+    return get_highest_spending_users_mysql(skip_cache)
 
 def get_best_selling_products(skip_cache=False):
     """Get report of best selling products"""
-    return get_best_selling_products_redis(skip_cache)
+    return get_best_selling_products_mysql(skip_cache)
