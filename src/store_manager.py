@@ -7,6 +7,7 @@ import threading
 from graphene import Schema
 from stocks.schemas.query import Query
 from flask import Flask, request, jsonify
+from prometheus_client import Counter, generate_latest, CONTENT_TYPE_LATEST
 from orders.controllers.order_controller import create_order, remove_order, get_order, get_report_highest_spending_users, get_report_best_selling_products
 from orders.controllers.user_controller import create_user, remove_user, get_user
 from stocks.controllers.product_controller import create_product, remove_product, get_product
@@ -105,7 +106,10 @@ def graphql_supplier():
         'errors': [str(e) for e in result.errors] if result.errors else None
     })
 
-# TODO: endpoint /metrics Prometheus
+@app.route('/metrics')
+def metrics():
+    """Expose application metrics for Prometheus."""
+    return generate_latest(), 200, {'Content-Type': CONTENT_TYPE_LATEST}
 
 # Start Flask app
 if __name__ == '__main__':
