@@ -1,0 +1,13 @@
+Method,Name,Error,Occurrences,First Seen,Last Seen
+POST,/orders,"CatchResponseError(""Erreur : 500 - (mysql.connector.errors.InternalError) 1213 (40001): Deadlock found when trying to get lock; try restarting transaction\n[SQL: \n                    UPDATE stocks \n                    SET quantity = quantity - %(qty)s \n                    WHERE product_id = %(pid)s\n                ]\n[parameters: {'qty': 1, 'pid': 1}]\n(Background on this error at: https://sqlalche.me/e/21/2j85)"")",1,2026-10-23T18:18:01Z,2026-10-23T18:18:01Z
+POST,/orders,CatchResponseError('Erreur : 500 - (mysql.connector.errors.DatabaseError) 1040 (HY000): Too many connections\n(Background on this error at: https://sqlalche.me/e/21/4xp6)'),1,2026-10-23T18:18:18Z,2026-10-23T18:18:18Z
+POST,/orders,"RetriesExceeded('http://store_manager:5000/orders', 0, original=timed out)",25,2026-10-23T18:17:28Z,2026-10-23T18:18:14Z
+GET,/orders/reports/best-sellers,Exception('Aucune réponse (erreur ou timeout)'),40,2026-10-23T18:17:26Z,2026-10-23T18:18:14Z
+GET,/orders/reports/best-sellers,"RetriesExceeded('http://store_manager:5000/orders/reports/best-sellers', 0, original=timed out)",40,2026-10-23T18:17:26Z,2026-10-23T18:18:14Z
+POST,/orders,Exception('Aucune réponse (erreur ou timeout)'),25,2026-10-23T18:17:28Z,2026-10-23T18:18:14Z
+POST,/orders,CatchResponseError('Erreur : 500 - (mysql.connector.errors.OperationalError) 1040 (08004): Too many connections\n(Background on this error at: https://sqlalche.me/e/21/e3q8)'),35,2026-10-23T18:17:57Z,2026-10-23T18:18:19Z
+GET,/orders/reports/highest-spenders,"CatchResponseError(""Le résultat n'est pas une liste : {'error': 'Too many connections'}"")",835,2026-10-23T18:17:15Z,2026-10-23T18:18:25Z
+GET,/orders/reports/highest-spenders,"RetriesExceeded('http://store_manager:5000/orders/reports/highest-spenders', 0, original=timed out)",35,2026-10-23T18:17:25Z,2026-10-23T18:18:15Z
+GET,/orders/reports/highest-spenders,Exception('Aucune réponse (erreur ou timeout)'),35,2026-10-23T18:17:25Z,2026-10-23T18:18:15Z
+GET,/orders/reports/best-sellers,"CatchResponseError(""Le résultat n'est pas une liste : {'error': 'Too many connections'}"")",791,2026-10-23T18:17:15Z,2026-10-23T18:18:25Z
+POST,/orders,CatchResponseError('Erreur : 500 - Too many connections'),844,2026-10-23T18:17:17Z,2026-10-23T18:18:25Z
