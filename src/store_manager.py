@@ -15,6 +15,14 @@ from stocks.controllers.stock_controller import get_stock, set_stock, get_stock_
  
 app = Flask(__name__)
 
+def generate_reports_and_cache():
+    """Generate reports after startup and refresh their Redis cache every 60 seconds."""
+    threading.Timer(2.0, get_report_highest_spending_users, args=(True,)).start()
+    threading.Timer(2.0, get_report_best_selling_products, args=(True,)).start()
+    threading.Timer(60.0, generate_reports_and_cache).start()
+
+generate_reports_and_cache()
+
 counter_orders = Counter('orders', 'Total calls to POST /orders')
 counter_highest_spenders = Counter('highest_spenders', 'Total calls to GET /orders/reports/highest-spenders')
 counter_best_sellers = Counter('best_sellers', 'Total calls to GET /orders/reports/best-sellers')

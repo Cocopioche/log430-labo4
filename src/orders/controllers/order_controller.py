@@ -37,10 +37,10 @@ def get_order(order_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     
-def get_report_highest_spending_users():
+def get_report_highest_spending_users(skip_cache=False):
     """Get orders report: highest spending users"""
-    return get_highest_spending_users()
+    return get_highest_spending_users(skip_cache)
 
-def get_report_best_selling_products():
+def get_report_best_selling_products(skip_cache=False):
     """Get orders report: best selling products"""
-    return get_best_selling_products()
+    return get_best_selling_products(skip_cache)
