@@ -17,9 +17,16 @@ app = Flask(__name__)
 
 def generate_reports_and_cache():
     """Generate reports after startup and refresh their Redis cache every 60 seconds."""
-    threading.Timer(2.0, get_report_highest_spending_users, args=(True,)).start()
-    threading.Timer(2.0, get_report_best_selling_products, args=(True,)).start()
-    threading.Timer(60.0, generate_reports_and_cache).start()
+    timers = [
+        threading.Timer(2.0, get_report_highest_spending_users, args=(True,)),
+        threading.Timer(2.0, get_report_best_selling_products, args=(True,)),
+        threading.Timer(60.0, generate_reports_and_cache),
+    ]
+    for timer in timers:
+        # Daemon: otherwise this self-rescheduling chain of non-daemon threads
+        # keeps the interpreter alive forever (pytest would never exit).
+        timer.daemon = True
+        timer.start()
 
 generate_reports_and_cache()
 
