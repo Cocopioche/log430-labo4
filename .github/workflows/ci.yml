@@ -1,35 +1,84 @@
-name: CI
+name: CI CD Store Manager Labo 04
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: labo04-${{ github.repository }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  IMAGE_NAME: ghcr.io/cocopioche/log430-labo4
 
 jobs:
-  test:
+  ci:
+    name: Build tests et publication GHCR
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      COMPOSE_PROJECT_NAME: ci-${{ github.run_id }}-${{ github.run_attempt }}
+      STORE_IMAGE: ghcr.io/cocopioche/log430-labo4:${{ github.sha }}
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Recuperer le code
+        uses: actions/checkout@v4
         with:
-          python-version: '3.11'
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          persist-credentials: false
 
-      - name: Creer fichier .env
-        run: |
-          echo "DB_HOST=127.0.0.1" >> .env
-          echo "DB_PORT=3306" >> .env
-          echo "DB_NAME=labo02_db" >> .env
-          echo "DB_USER=labo02" >> .env
-          echo "DB_PASS=labo02" >> .env
-          echo "REDIS_HOST=127.0.0.1" >> .env
-          echo "REDIS_PORT=6379" >> .env
-          echo "REDIS_DB=0" >> .env
+      - name: Verifier la configuration Prometheus
+        shell: bash
+        run: python3 -c "import sys, yaml; yaml.safe_load(open('prometheus.yml')); print('prometheus.yml valide')"
 
-      - name: Run tests
-        working-directory: src
-        run: echo "Call pytest command here!"
+      - name: Verifier la configuration Nginx
+        shell: bash
+        run: |
+          docker run --rm \
+            -v "$PWD/nginx.conf:/etc/nginx/nginx.conf:ro" \
+            nginx:latest nginx -t
+
+      - name: Construire l image du commit
+        shell: bash
+        run: |
+          docker build \
+            --label "org.opencontainers.image.revision=${GITHUB_SHA}" \
+            -t "${IMAGE_NAME}:${GITHUB_SHA}" .
+          docker run --rm "${IMAGE_NAME}:${GITHUB_SHA}" python -m compileall -q /app/src
+
+      - name: Demarrer la pile de test isolee
+        shell: bash
+        run: docker compose -f ci/compose.yml up -d --wait --wait-timeout 240
+
+      - name: Executer les tests pytest
+        shell: bash
+        run: docker compose -f ci/compose.yml exec -T store_manager python -m pytest -q tests
+
+      - name: Verifier le flux complet et les Counters Prometheus
+        shell: bash
+        run: docker compose -f ci/compose.yml exec -T store_manager python - < ci/smoke.py
+
+      - name: Publier l image validee sur GHCR
+        if: github.event_name == 'push'
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          printf '%s' "$GITHUB_TOKEN" | docker login ghcr.io -u "${GITHUB_ACTOR}" --password-stdin
+          docker push "${IMAGE_NAME}:${GITHUB_SHA}"
+          docker tag "${IMAGE_NAME}:${GITHUB_SHA}" "${IMAGE_NAME}:latest"
+          docker push "${IMAGE_NAME}:latest"
+
+      - name: Afficher les journaux en cas d echec
+        if: failure()
+        shell: bash
+        run: docker compose -f ci/compose.yml logs --no-color --tail=100
+
+      - name: Nettoyer la pile CI isolee
+        if: always()
+        shell: bash
+        run: docker compose -f ci/compose.yml down --volumes --remove-orphans

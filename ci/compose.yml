@@ -1,0 +1,56 @@
+# Pile d'integration jetable, utilisee uniquement sur la machine CI de GitHub.
+# Aucun port publie sur l'hote, aucun reseau externe, aucun fichier .env local :
+# la configuration arrive par variables d'environnement et les volumes sont
+# supprimes a la fin du job.
+services:
+  mysql:
+    image: mysql:8.4.7
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: labo04_db
+      MYSQL_USER: labo04
+      MYSQL_PASSWORD: labo04
+    volumes:
+      - store-ci-data:/var/lib/mysql
+      - ../db-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      interval: 3s
+      timeout: 5s
+      retries: 60
+
+  # Image Redis nue, sans redis_entrypoint.sh : la CI demarre sur un cache vide,
+  # les donnees fictives de generators/ ne sont pas versionnees.
+  redis:
+    image: redis:7
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  store_manager:
+    image: ${STORE_IMAGE:-ghcr.io/cocopioche/log430-labo4:latest}
+    environment:
+      DB_HOST: mysql
+      DB_PORT: "3306"
+      DB_NAME: labo04_db
+      DB_USER: labo04
+      DB_PASSWORD: labo04
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_DB: "0"
+      PYTHONUNBUFFERED: "1"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/health-check', timeout=3)"]
+      interval: 3s
+      timeout: 5s
+      retries: 30
+
+volumes:
+  store-ci-data:
