@@ -46,7 +46,7 @@ Les commandes MySQL et Redis générées seront exécutées automatiquement au d
 Suivez les mêmes étapes que dans le laboratoire dernier (ex. création d'un fichier `.env`, etc.).
 
 ### 5. Installez Postman
-Suivez les mêmes étapes que dans le laboratoire dernier. Importez la collection disponible dans `/docs/collections`.
+Suivez les mêmes étapes que dans le laboratoire dernier. Importez la collection disponible dans `/docs/collections`. 
 
 ## 🧪 Activités pratiques
 Pendant le labo 02, nous avons implémenté le cache avec Redis. Pendant le labo 03, nous avons utilisé ce cache pour les endpoints des rapports. Dans ce labo, nous allons temporairement désactiver Redis pour mesurer la différence entre les lectures à MySQL vs Redis. Pour faciliter les comparaisons, dans ce laboratoire les méthodes qui font la génération de rapports dans `queries/read_order.py` ont 2 versions : une pour MySQL, une autre pour Redis.
